@@ -1,0 +1,66 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.5'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// React (Vite) 프로젝트 디렉터리 설정
+def reactAppDir = "$projectDir/src/main/frontvite"
+
+// Vite 의존성 설치 작업
+task installViteDependencies(type: Exec) {
+    workingDir reactAppDir
+    inputs.dir reactAppDir
+    group = BasePlugin.BUILD_GROUP
+    commandLine "npm", "install"
+    if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+        commandLine "npm.cmd", "install"
+    }
+}
+
+// Vite 빌드 작업
+task buildVite(type: Exec) {
+    dependsOn installViteDependencies
+    workingDir reactAppDir
+    group = BasePlugin.BUILD_GROUP
+    commandLine "npm", "run", "build"
+    if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+        commandLine "npm.cmd", "run", "build"
+    }
+}
+
+// 빌드된 Vite 파일을 Spring Boot 정적 리소스 디렉토리로 복사
+task copyViteBuildFiles(type: Copy) {
+    dependsOn buildVite
+    from "$reactAppDir/dist"  // Vite 기본 빌드 출력 디렉터리
+    into "$projectDir/src/main/resources/static"
+}
+
+processResources {
+    dependsOn copyViteBuildFiles
+}
