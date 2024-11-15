@@ -13,7 +13,7 @@ function App() {
   return (
     <div className="App">
       <h1>Spring Boot + React + NCP</h1>
-      <h3>카운트: 1</h3>
+      <h3>카운트: 3</h3>
       <div>Test: {test}</div>
       <button onClick={test1Btn}>test1</button><hr />
       <img src="./image/maru.jpg" alt="마루"/>
